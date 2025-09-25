@@ -58,9 +58,21 @@ python -m py_compile *.py
 ```
 
 ## Git Workflow
-- Always commit changes after modifications
-- Push commits to track progress
-- Use descriptive commit messages
+- **MANDATORY**: Always commit changes after ANY modification
+- **MANDATORY**: Push commits immediately after committing
+- Use descriptive commit messages with Claude Code footer
+- Never leave uncommitted changes in working directory
+
+### Commit Process After Every Change:
+```bash
+git add .
+git commit -m "Description of changes
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+git push
+```
 
 ## Test Commands
 ```bash
