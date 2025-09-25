@@ -214,7 +214,7 @@ build_ffmpeg_command() {
         if [ $input_index -gt 0 ]; then
             filter_complex="$filter_complex;"
         fi
-        filter_complex="$filter_complex[$input_index:v]scale_cuda=$OUTPUT_RESOLUTION:force_original_aspect_ratio=decrease,fps=$OUTPUT_FRAMERATE[v$input_index]"
+        filter_complex="$filter_complex[$input_index:v]scale_cuda=${OUTPUT_RESOLUTION//x/:}:force_original_aspect_ratio=decrease,fps=$OUTPUT_FRAMERATE[v$input_index]"
         ((input_index++))
     done
 
