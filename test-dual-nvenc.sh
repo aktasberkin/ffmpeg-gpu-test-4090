@@ -41,35 +41,63 @@ NVENC1_PID=""
 NVENC2_PID=""
 MONITOR_PID=""
 
-# Test mode selection
-TEST_MODE=${1:-"standard"}
+# Parse command line arguments
+if [[ $# -eq 0 ]]; then
+    echo "Usage: $0 <streams_per_nvenc> [duration_seconds]"
+    echo ""
+    echo "Parameters:"
+    echo "  streams_per_nvenc: Number of streams per NVENC encoder (1-100)"
+    echo "  duration_seconds:  Test duration in seconds (optional, default: 60)"
+    echo ""
+    echo "Examples:"
+    echo "  $0 25      # 25 streams per NVENC (50 total), 60 seconds"
+    echo "  $0 50 120  # 50 streams per NVENC (100 total), 120 seconds"
+    echo "  $0 75      # 75 streams per NVENC (150 total), 60 seconds"
+    echo ""
+    echo "Predefined modes (for compatibility):"
+    echo "  $0 conservative  # Same as: $0 25"
+    echo "  $0 standard      # Same as: $0 50"
+    echo "  $0 aggressive    # Same as: $0 75"
+    echo "  $0 maximum       # Same as: $0 100"
+    exit 1
+fi
 
-case $TEST_MODE in
+# Handle predefined mode names for backward compatibility
+case $1 in
     "conservative") STREAMS_PER_NVENC=25 ;;
     "standard")     STREAMS_PER_NVENC=50 ;;
     "aggressive")   STREAMS_PER_NVENC=75 ;;
     "maximum")      STREAMS_PER_NVENC=100 ;;
     *)
-        echo "Usage: $0 [conservative|standard|aggressive|maximum]"
-        echo ""
-        echo "Test Modes:"
-        echo "  conservative: 25 streams per NVENC (50 total)"
-        echo "  standard:     50 streams per NVENC (100 total)"
-        echo "  aggressive:   75 streams per NVENC (150 total)"
-        echo "  maximum:      100 streams per NVENC (200 total)"
-        echo ""
-        echo "Environment Variables:"
-        echo "  STREAMS_PER_NVENC: Override streams per encoder"
-        echo "  TEST_DURATION:     Test duration in seconds (default: 60)"
-        exit 1
+        # Validate numeric input
+        if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+            print_error "Invalid input: '$1' - must be a number or predefined mode"
+            exit 1
+        fi
+
+        STREAMS_PER_NVENC=$1
+
+        if [[ $STREAMS_PER_NVENC -lt 1 || $STREAMS_PER_NVENC -gt 100 ]]; then
+            print_error "Streams per NVENC must be between 1 and 100"
+            exit 1
+        fi
         ;;
 esac
+
+# Optional duration parameter
+if [[ $# -ge 2 ]]; then
+    if [[ "$2" =~ ^[0-9]+$ ]]; then
+        TEST_DURATION=$2
+    else
+        print_error "Invalid duration: '$2' - must be a number in seconds"
+        exit 1
+    fi
+fi
 
 # Recalculate total after mode selection
 TOTAL_STREAMS=$((STREAMS_PER_NVENC * TOTAL_NVENC_ENCODERS))
 
 print_status "RTX 4090 Dual-NVENC Concurrent Test"
-print_status "Test Mode: $TEST_MODE"
 print_status "Streams per NVENC: $STREAMS_PER_NVENC"
 print_status "Total Streams: $TOTAL_STREAMS"
 print_status "Test Duration: ${TEST_DURATION}s"
@@ -366,7 +394,7 @@ analyze_results() {
 RTX 4090 Dual-NVENC Concurrent Stream Test Results
 ================================================
 Test Date: $(date)
-Test Mode: $TEST_MODE
+Streams per NVENC: $STREAMS_PER_NVENC
 Test Duration: ${TEST_DURATION}s
 
 Configuration:
